@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<a th:if="${currentUser != null}" href="/logout">Logout</a>
+<div th:if="${currentUser == null}">
+    <h3>SignIn</h3>
+    <form action='/signIn' method="post">
+        <input type="email" name="email" placeholder="Input email"><br>
+        <input type="password" name="password" placeholder="Input password"><br>
+        <input type="submit" value="LOGIN">
+    </form>
+    <h3>Register</h3>
+    <form action="/user/register" method="post">
+        <input type="text" name="name" placeholder="input name"><br>
+        <input type="text" name="surname" placeholder="Input surname"><br>
+        <input type="text" name="email" placeholder="email"><br>
+        <input type="text" name="password" placeholder="Input password"><br>
+        <input type="submit" value="REGISTER">
+    </form>
+</div>
+<h3 th:if="${currentUser != null}">Add book</h3>
+<form th:if="${currentUser != null}" action="/book/save" method="post" enctype="multipart/form-data">
+    <input type="text" name="name" placeholder="Input name"><br>
+    <textarea type="text" name="description" placeholder="Input description"></textarea><br>
+    <input type="file" name="bookImage"><br>
+    <input hidden th:value="${currentUser.id}" name="author"><br>
+    <input type="submit" value="ADD">
+</form>
+<h3>All books</h3>
+<table>
+    <tr>
+        <th>Name</th>
+        <th>Description</th>
+        <!--<th>Picture</th>-->
+        <th>Author</th>
+    </tr>
+    <tr th:each="book:${books}">
+        <td th:text="${book.name}"></td>
+        <td th:text="${book.description}"></td>
+        <!--<td th:if="${book.picUrl != null}" th:src="@{'/book/getImage?'(bookImage=${book.picUrl})}"></td>-->
+        <td th:if="${book.author != null}" th:text="${book.author.name + ' ' + book.author.surname + ' ' + book.author.email}"></td>
+    </tr>
+</table>
+<div th:if="${currentUser != null}">
+    <h4><a th:href="@{'/book' + ${currentUser.id}}">My books</a></h4>
+</div>
+</body>
+</html>

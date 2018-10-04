@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<h4><a href="/">Home</a></h4>
+<table>
+    <tr>
+        <th>Name</th>
+        <th>Description</th>
+        <th>Picture</th>
+        <th>Action</th>
+    </tr>
+   <tr th:each="book:${allBooks}">
+       <form action="/book/update" method="post">
+           <td hidden><input hidden name="id" th:value="${book.id}"></td>
+       <td><input type="text" name="name" th:value="${book.name}"></td>
+     <td><textarea name="description" th:text="${book.description}"></textarea></td>
+       <!--<td th:if="${book.picUrl != null}" th:src="@{'/book/getImage/'(bookImage=${book.picUrl})}"></td>-->
+       <td><a href="#" value="submit" th:href="@{'user/deleteBook/' + ${book.id}}">Delete</a></td>
+           <td hidden th:value="${currentUser.id}" name="author"></td>
+           <td><input type="submit" th:value="Update"></td>
+       </form>
+   </tr>
+</table>
+<a th:href="@{'user/deleteAllBooks'}">Delete all</a>
+</body>
+</html>
