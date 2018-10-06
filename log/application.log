@@ -1,0 +1,8 @@
+2018-10-06 21:07:23.535  INFO 10120 --- [restartedMain] com.task.demo.DemoApplication            : Starting DemoApplication on DESKTOP-POIO377 with PID 10120 (D:\Author-Book\target\classes started by Karen in D:\Author-Book)
+2018-10-06 21:07:23.538  INFO 10120 --- [restartedMain] com.task.demo.DemoApplication            : No active profile set, falling back to default profiles: default
+2018-10-06 21:07:29.436  INFO 10120 --- [restartedMain] com.task.demo.DemoApplication            : Started DemoApplication in 7.114 seconds (JVM running for 9.341)
+2018-10-06 21:07:51.961  INFO 10120 --- [http-nio-8080-exec-10] com.task.demo.controller.MainController  : New user registered_Successfully!
+2018-10-06 21:08:09.452  INFO 10120 --- [http-nio-8080-exec-8] com.task.demo.controller.MainController  : User added a book_Successfully!
+2018-10-06 21:09:31.536  INFO 10120 --- [restartedMain] com.task.demo.DemoApplication            : Starting DemoApplication on DESKTOP-POIO377 with PID 10120 (D:\Author-Book\target\classes started by Karen in D:\Author-Book)
+2018-10-06 21:09:31.537  INFO 10120 --- [restartedMain] com.task.demo.DemoApplication            : No active profile set, falling back to default profiles: default
+2018-10-06 21:09:33.951  INFO 10120 --- [restartedMain] com.task.demo.DemoApplication            : Started DemoApplication in 2.529 seconds (JVM running for 133.857)

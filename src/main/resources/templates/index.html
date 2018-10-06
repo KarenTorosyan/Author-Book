@@ -5,48 +5,52 @@
     <title>Title</title>
 </head>
 <body>
-<a th:if="${currentUser != null}" href="/logout">Logout</a>
+<a href="?lang=en"><img src="/img/lang/england.png" style="width: 25px;"></a>
+<a href="?lang=hy"><img src="/img/lang/armenia.png" style="width: 25px;"></a>
+<a href="?lang=ru"><img src="/img/lang/russia.png" style="width: 25px;"></a>
+<br>
+<a th:if="${currentUser != null}" href="/logout" th:text="#{user.logout}"></a>
 <div th:if="${currentUser == null}">
-    <h3>SignIn</h3>
+    <h3 th:text="#{signIn}"></h3>
     <form action='/signIn' method="post">
-        <input type="email" name="email" placeholder="Input email"><br>
-        <input type="password" name="password" placeholder="Input password"><br>
-        <input type="submit" value="LOGIN">
+        <input type="email" name="email" th:placeholder="#{signIn.input.email}" required><br>
+        <input type="password" name="password" th:placeholder="#{signIn.input.password}" required><br>
+        <input type="submit" th:value="#{signIn}">
     </form>
-    <h3>Register</h3>
+    <h3 th:text="#{register}"></h3>
     <form action="/user/register" method="post">
-        <input type="text" name="name" placeholder="input name"><br>
-        <input type="text" name="surname" placeholder="Input surname"><br>
-        <input type="text" name="email" placeholder="email"><br>
-        <input type="text" name="password" placeholder="Input password"><br>
-        <input type="submit" value="REGISTER">
+        <input type="text" name="name" th:placeholder="#{register.input.name}" required><br>
+        <input type="text" name="surname" th:placeholder="#{register.input.surname}" required><br>
+        <input type="text" name="email" th:placeholder="#{register.input.email}" required><br>
+        <input type="text" name="password" th:placeholder="#{register.input.password}" required><br>
+        <input type="submit" th:value="#{register}">
     </form>
 </div>
-<h3 th:if="${currentUser != null}">Add book</h3>
+<h3 th:if="${currentUser != null}" th:text="#{book.add}"></h3>
 <form th:if="${currentUser != null}" action="/book/save" method="post" enctype="multipart/form-data">
-    <input type="text" name="name" placeholder="Input name"><br>
-    <textarea type="text" name="description" placeholder="Input description"></textarea><br>
-    <input type="file" name="bookImage"><br>
+    <input type="text" name="name" th:placeholder="#{book.name}" required><br>
+    <textarea type="text" name="description" th:placeholder="#{book.description}" required></textarea><br>
+    <input type="file" name="bookImage" accept="image/*" required>
     <input hidden th:value="${currentUser.id}" name="author"><br>
-    <input type="submit" value="ADD">
+    <input type="submit" th:value="#{book.add}">
 </form>
-<h3>All books</h3>
+<h3 th:text="#{book.all}"></h3>
 <table>
     <tr>
-        <th>Name</th>
-        <th>Description</th>
-        <!--<th>Picture</th>-->
-        <th>Author</th>
+        <th th:text="#{book.name}"></th>
+        <th th:text="#{book.description}"></th>
+        <th th:text="#{book.picture}"></th>
+        <th th:text="#{book.author}"></th>
     </tr>
     <tr th:each="book:${books}">
         <td th:text="${book.name}"></td>
         <td th:text="${book.description}"></td>
-        <!--<td th:if="${book.picUrl != null}" th:src="@{'/book/getImage?'(bookImage=${book.picUrl})}"></td>-->
+        <td><img th:if="${book.picUrl != null}" th:src="@{'/book/getImage?'(bookImage=${book.picUrl})}" style="width: 60px"></td>
         <td th:if="${book.author != null}" th:text="${book.author.name + ' ' + book.author.surname + ' ' + book.author.email}"></td>
     </tr>
 </table>
 <div th:if="${currentUser != null}">
-    <h4><a th:href="@{'/book' + ${currentUser.id}}">My books</a></h4>
+    <h4><a th:href="@{'/book' + ${currentUser.id}}" th:text="#{book.my}"></a></h4>
 </div>
 </body>
 </html>

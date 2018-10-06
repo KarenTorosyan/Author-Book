@@ -2,29 +2,30 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title th:text="#{book.my}"></title>
 </head>
 <body>
-<h4><a href="/">Home</a></h4>
+<h4><a href="/" th:text="#{home}"></a></h4>
 <table>
     <tr>
-        <th>Name</th>
-        <th>Description</th>
-        <th>Picture</th>
-        <th>Action</th>
+        <th th:text="#{book.name}"></th>
+        <th th:text="#{book.description}"></th>
+        <th th:text="#{book.picture}"></th>
+        <th th:text="#{book.action}"></th>
+
     </tr>
    <tr th:each="book:${allBooks}">
        <form action="/book/update" method="post">
            <td hidden><input hidden name="id" th:value="${book.id}"></td>
        <td><input type="text" name="name" th:value="${book.name}"></td>
      <td><textarea name="description" th:text="${book.description}"></textarea></td>
-       <!--<td th:if="${book.picUrl != null}" th:src="@{'/book/getImage/'(bookImage=${book.picUrl})}"></td>-->
-       <td><a href="#" value="submit" th:href="@{'user/deleteBook/' + ${book.id}}">Delete</a></td>
+       <td><input name="picUrl" th:value="${book.picUrl}" hidden><img th:if="${book.picUrl != null}" name="bookImage" th:src="@{'/book/getImage/'(bookImage=${book.picUrl})}" style="width: 60px"></td>
+       <td><a href="#" value="submit" th:href="@{'user/deleteBook/' + ${book.id}}" th:text="#{book.delete}"></a></td>
            <td hidden th:value="${currentUser.id}" name="author"></td>
-           <td><input type="submit" th:value="Update"></td>
+           <td><input type="submit" th:value="#{book.update}"></td>
        </form>
    </tr>
 </table>
-<a th:href="@{'user/deleteAllBooks'}">Delete all</a>
+<a th:href="@{'user/deleteAllBooks'}" th:text="#{book.delete.all}"></a>
 </body>
 </html>

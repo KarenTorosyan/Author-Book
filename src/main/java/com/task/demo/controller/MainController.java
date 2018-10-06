@@ -6,6 +6,8 @@ import com.task.demo.security.CurrentUser;
 import com.task.demo.service.AuthorService;
 import com.task.demo.service.BookService;
 import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -20,9 +22,12 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Optional;
 
 @Controller
 public class MainController {
+
+    Logger logger = LoggerFactory.getLogger(getClass());
 
     @Autowired
     private AuthorService authorService;
@@ -37,11 +42,10 @@ public class MainController {
     private String bookImageDir;
 
     @GetMapping("/")
-    public String main(ModelMap modelMap,
-                       @AuthenticationPrincipal CurrentUser currentUser) {
+    public String main(@AuthenticationPrincipal CurrentUser currentUser,
+                       ModelMap modelMap) {
         if (currentUser != null) {
             modelMap.addAttribute("currentUser", currentUser.getAuthor());
-
         }
         List<Author> authors = authorService.findAllAuthors();
         modelMap.addAttribute("authors", authors);
@@ -51,16 +55,23 @@ public class MainController {
     }
 
     @GetMapping("/signIn")
-    public String signIn(ModelMap modelMap) {
+    public String signIn() {
         return "redirect:/";
     }
 
     @PostMapping("/user/register")
     public String register(@ModelAttribute Author author) {
-        author.setPassword(passwordEncoder.encode(author.getPassword()));
-        authorService.save(author);
-        return "redirect:/";
+        Optional<Author> emailExist = authorService.findByEmail(author.getEmail());
+        if (emailExist.isPresent()) {
+            return "redirect:/";
+        } else {
+            author.setPassword(passwordEncoder.encode(author.getPassword()));
+            authorService.save(author);
+            logger.info("New user registered_Successfully!");
+            return "redirect:/";
+        }
     }
+
 
     @PostMapping("/book/save")
     public String book(@ModelAttribute Book book,
@@ -73,10 +84,11 @@ public class MainController {
         multipartFile.transferTo(new File(bookImageDir + picName));
         book.setPicUrl(picName);
         bookService.save(book);
+        logger.info("User added a book_Successfully!");
         return "redirect:/";
     }
 
-    @GetMapping("/book/getImage")
+    @GetMapping(value = "/book/getImage")
     public @ResponseBody
     byte[] bookImage(@RequestParam("bookImage") String picUrl) throws IOException {
         InputStream inputStream = new FileInputStream(bookImageDir + picUrl);
@@ -96,25 +108,26 @@ public class MainController {
     }
 
     @GetMapping("/book{id}")
-    public String bookById(@PathVariable("id")String id,
+    public String bookById(@PathVariable("id") String id,
                            ModelMap modelMap,
-                           @AuthenticationPrincipal CurrentUser currentUser){
-        if(currentUser != null){
-            modelMap.addAttribute("currentUser",currentUser.getAuthor());
+                           @AuthenticationPrincipal CurrentUser currentUser) {
+        if (currentUser != null) {
+            modelMap.addAttribute("currentUser", currentUser.getAuthor());
         }
         List<Book> allBooks = bookService.findAllBooksById(id);
-        modelMap.addAttribute("allBooks",allBooks);
+        modelMap.addAttribute("allBooks", allBooks);
         return "book";
     }
 
     @PostMapping("/book/update")
-    public String updateBook(@ModelAttribute Book book,Book currentBook,
-                                @AuthenticationPrincipal CurrentUser currentUser) {
+    public String updateBook(@ModelAttribute Book book, Book currentBook,
+                             @AuthenticationPrincipal CurrentUser currentUser) {
 
         currentBook.setName(book.getName());
         currentBook.setDescription(book.getDescription());
         currentBook.setAuthor(currentUser.getAuthor());
+        currentBook.setPicUrl(book.getPicUrl());
         bookService.save(currentBook);
-            return "redirect:/";
+        return "redirect:/";
     }
 }
