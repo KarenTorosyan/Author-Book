@@ -9,16 +9,19 @@
 <a href="?lang=hy"><img src="/img/lang/armenia.png" style="width: 25px;"></a>
 <a href="?lang=ru"><img src="/img/lang/russia.png" style="width: 25px;"></a>
 <br>
-<a th:if="${currentUser != null}" href="/logout" th:text="#{user.logout}"></a>
+<a th:if="${currentUser != null}" href="/user/logout" th:text="#{user.logout}"></a>
 <div th:if="${currentUser == null}">
     <h3 th:text="#{signIn}"></h3>
     <form action='/signIn' method="post">
-        <input type="email" name="email" th:placeholder="#{signIn.input.email}" required><br>
-        <input type="password" name="password" th:placeholder="#{signIn.input.password}" required><br>
+        <h4 th:text="${errorMsg}" style="color: #ff4538"></h4>
+        <input type="email" name="email" th:placeholder="#{signIn.input.email}" ><br>
+        <input type="password" name="password" th:placeholder="#{signIn.input.password}" ><br>
         <input type="submit" th:value="#{signIn}">
     </form>
     <h3 th:text="#{register}"></h3>
     <form action="/user/register" method="post">
+        <h4 th:text="${emailExistMsg}" style="color: #ff4538"></h4>
+        <h4 th:text="${successRegisterMsg}" style="color:#4c8d36;"></h4>
         <input type="text" name="name" th:placeholder="#{register.input.name}" required><br>
         <input type="text" name="surname" th:placeholder="#{register.input.surname}" required><br>
         <input type="text" name="email" th:placeholder="#{register.input.email}" required><br>

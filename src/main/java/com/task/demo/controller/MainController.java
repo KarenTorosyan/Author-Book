@@ -6,6 +6,7 @@ import com.task.demo.security.CurrentUser;
 import com.task.demo.service.AuthorService;
 import com.task.demo.service.BookService;
 import org.apache.commons.io.IOUtils;
+import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +18,7 @@ import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpSession;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -47,31 +49,55 @@ public class MainController {
         if (currentUser != null) {
             modelMap.addAttribute("currentUser", currentUser.getAuthor());
         }
+        show(modelMap);
+        return "index";
+    }
+
+    private void show(ModelMap modelMap) {
         List<Author> authors = authorService.findAllAuthors();
         modelMap.addAttribute("authors", authors);
         List<Book> books = bookService.findAllBooks();
         modelMap.addAttribute("books", books);
-        return "index";
     }
 
     @GetMapping("/signIn")
-    public String signIn() {
-        return "redirect:/";
-    }
-
-    @PostMapping("/user/register")
-    public String register(@ModelAttribute Author author) {
-        Optional<Author> emailExist = authorService.findByEmail(author.getEmail());
-        if (emailExist.isPresent()) {
-            return "redirect:/";
+    public String signIn(@ModelAttribute Author author,
+                         ModelMap modelMap) {
+        if (author.getEmail() == null || author.getPassword() == null) {
+            String errorMsg = "Invalid email or password";
+            modelMap.addAttribute("errorMsg", errorMsg);
+            show(modelMap);
+            return "index";
         } else {
-            author.setPassword(passwordEncoder.encode(author.getPassword()));
-            authorService.save(author);
-            logger.info("New user registered_Successfully!");
             return "redirect:/";
         }
     }
 
+    @GetMapping("/user/logout")
+    public String logout(HttpSession httpSession) {
+        httpSession.invalidate();
+        return "redirect:/";
+    }
+
+    @PostMapping("/user/register")
+    public String register(@ModelAttribute Author author,
+                           ModelMap modelMap) {
+        Optional<Author> emailExist = authorService.findByEmail(author.getEmail());
+        if (emailExist.isPresent()) {
+            String emailExistMsg = String.format("%s email address already registered. Please enter another ", author.getEmail());
+            modelMap.addAttribute("emailExistMsg", emailExistMsg);
+            show(modelMap);
+            return "index";
+        } else {
+            author.setPassword(passwordEncoder.encode(author.getPassword()));
+            authorService.save(author);
+            logger.info("New user registered_Successfully!");
+            String successRegisterMsg = String.format("%s are you registered",author.getName());
+            modelMap.addAttribute("successRegisterMsg",successRegisterMsg);
+            show(modelMap);
+            return "index";
+        }
+    }
 
     @PostMapping("/book/save")
     public String book(@ModelAttribute Book book,
@@ -108,7 +134,7 @@ public class MainController {
     }
 
     @GetMapping("/book{id}")
-    public String bookById(@PathVariable("id") String id,
+    public String bookById(@PathVariable("id") ObjectId id,
                            ModelMap modelMap,
                            @AuthenticationPrincipal CurrentUser currentUser) {
         if (currentUser != null) {
@@ -122,7 +148,6 @@ public class MainController {
     @PostMapping("/book/update")
     public String updateBook(@ModelAttribute Book book, Book currentBook,
                              @AuthenticationPrincipal CurrentUser currentUser) {
-
         currentBook.setName(book.getName());
         currentBook.setDescription(book.getDescription());
         currentBook.setAuthor(currentUser.getAuthor());
@@ -130,4 +155,5 @@ public class MainController {
         bookService.save(currentBook);
         return "redirect:/";
     }
+
 }

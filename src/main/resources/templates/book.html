@@ -12,7 +12,6 @@
         <th th:text="#{book.description}"></th>
         <th th:text="#{book.picture}"></th>
         <th th:text="#{book.action}"></th>
-
     </tr>
    <tr th:each="book:${allBooks}">
        <form action="/book/update" method="post">
