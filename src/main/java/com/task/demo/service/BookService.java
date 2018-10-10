@@ -23,10 +23,6 @@ public class BookService {
         return bookRepository.findAll();
     }
 
-    public void deleteAllBooks() {
-        bookRepository.deleteAll();
-    }
-
     public void deleteBookById(String id) {
         bookRepository.deleteById(id);
     }

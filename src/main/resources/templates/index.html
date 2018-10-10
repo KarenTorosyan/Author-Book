@@ -10,30 +10,34 @@
 <a href="?lang=ru"><img src="/img/lang/russia.png" style="width: 25px;"></a>
 <br>
 <a th:if="${currentUser != null}" href="/user/logout" th:text="#{user.logout}"></a>
+<br>
+<h4 th:if="${verifyMsg}" th:text="#{verify}" style="color: #ff4538"></h4>
 <div th:if="${currentUser == null}">
     <h3 th:text="#{signIn}"></h3>
     <form action='/signIn' method="post">
-        <h4 th:text="${errorMsg}" style="color: #ff4538"></h4>
-        <input type="email" name="email" th:placeholder="#{signIn.input.email}" ><br>
-        <input type="password" name="password" th:placeholder="#{signIn.input.password}" ><br>
+        <h4 th:if="${errorMsg}" th:text="#{signIn.error}" style="color: #ff4538"></h4>
+        <input type="email" name="email" th:placeholder="#{signIn.input.email}"><br>
+        <input type="password" name="password" th:placeholder="#{signIn.input.password}"><br>
         <input type="submit" th:value="#{signIn}">
     </form>
     <h3 th:text="#{register}"></h3>
     <form action="/user/register" method="post">
-        <h4 th:text="${emailExistMsg}" style="color: #ff4538"></h4>
-        <h4 th:text="${successRegisterMsg}" style="color:#4c8d36;"></h4>
+        <h4 th:if="${emailExistMsg}" th:text="#{register.email.exist}" style="color: #ff4538"></h4>
+        <h4 th:if="${successRegisterMsg}" th:text="#{register.success}" style="color:#4c8d36;"></h4>
         <input type="text" name="name" th:placeholder="#{register.input.name}" required><br>
         <input type="text" name="surname" th:placeholder="#{register.input.surname}" required><br>
-        <input type="text" name="email" th:placeholder="#{register.input.email}" required><br>
-        <input type="text" name="password" th:placeholder="#{register.input.password}" required><br>
+        <input type="email" name="email" th:placeholder="#{register.input.email}" required><br>
+        <input type="password" name="password" th:placeholder="#{register.input.password}" required><br>
         <input type="submit" th:value="#{register}">
     </form>
 </div>
 <h3 th:if="${currentUser != null}" th:text="#{book.add}"></h3>
+<h4 th:if="${bookNotAddedMsg}" th:text="#{book.not.added}" style="color: #ff4538"></h4>
 <form th:if="${currentUser != null}" action="/book/save" method="post" enctype="multipart/form-data">
     <input type="text" name="name" th:placeholder="#{book.name}" required><br>
     <textarea type="text" name="description" th:placeholder="#{book.description}" required></textarea><br>
-    <input type="file" name="bookImage" accept="image/*" required>
+    <input type="file" name="bookImage" accept="image/*" id="files" hidden required>
+    <label style="cursor: pointer;color: #2b207f; " for="files" th:text="#{book.upload.image}" border="2px"></label><br>
     <input hidden th:value="${currentUser.id}" name="author"><br>
     <input type="submit" th:value="#{book.add}">
 </form>
@@ -48,8 +52,9 @@
     <tr th:each="book:${books}">
         <td th:text="${book.name}"></td>
         <td th:text="${book.description}"></td>
-        <td><img th:if="${book.picUrl != null}" th:src="@{'/book/getImage?'(bookImage=${book.picUrl})}" style="width: 60px"></td>
-        <td th:if="${book.author != null}" th:text="${book.author.name + ' ' + book.author.surname + ' ' + book.author.email}"></td>
+        <td><img th:if="${book.picUrl != null}" th:src="@{'/book/getImage?'(bookImage=${book.picUrl})}"
+                 style="width: 60px"></td>
+        <td th:if="${book.author != null}" th:text="${book.author.name + ' ' + book.author.surname }"></td>
     </tr>
 </table>
 <div th:if="${currentUser != null}">

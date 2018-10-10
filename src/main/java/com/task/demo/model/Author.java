@@ -19,4 +19,6 @@ public class Author {
     private String surname;
     private String email;
     private String password;
+    private String token;
+    private boolean verify;
 }

@@ -25,4 +25,11 @@ public class AuthorService {
         return authorRepository.findByEmail(email);
     }
 
+    public Author findOneByEmail(String email){
+        return  authorRepository.findOneByEmail(email);
+    }
+
+    public void delete(){
+        authorRepository.deleteAll();
+    }
 }

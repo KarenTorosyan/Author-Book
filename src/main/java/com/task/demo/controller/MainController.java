@@ -5,6 +5,7 @@ import com.task.demo.model.Book;
 import com.task.demo.security.CurrentUser;
 import com.task.demo.service.AuthorService;
 import com.task.demo.service.BookService;
+import com.task.demo.util.MailService;
 import org.apache.commons.io.IOUtils;
 import org.bson.types.ObjectId;
 import org.slf4j.Logger;
@@ -25,6 +26,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Controller
 public class MainController {
@@ -40,20 +42,38 @@ public class MainController {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private MailService mailService;
+
     @Value("${book.image}")
     private String bookImageDir;
 
     @GetMapping("/")
     public String main(@AuthenticationPrincipal CurrentUser currentUser,
+                       @ModelAttribute Author author,
                        ModelMap modelMap) {
-        if (currentUser != null) {
-            modelMap.addAttribute("currentUser", currentUser.getAuthor());
-        }
-        show(modelMap);
+        verify(currentUser, modelMap);
+        show(currentUser, modelMap);
         return "index";
     }
 
-    private void show(ModelMap modelMap) {
+    private boolean verify(@AuthenticationPrincipal CurrentUser currentUser,
+                           ModelMap modelMap) {
+        if (currentUser != null) {
+            modelMap.addAttribute("currentUser", currentUser);
+            if (!currentUser.getAuthor().isVerify()) {
+                String verifyMsg = "";
+                modelMap.addAttribute("verifyMsg", verifyMsg);
+            }
+        }
+        return true;
+    }
+
+    private void show(@AuthenticationPrincipal CurrentUser currentUser,
+                      ModelMap modelMap) {
+        if (currentUser != null) {
+            modelMap.addAttribute("currentUser", currentUser.getAuthor());
+        }
         List<Author> authors = authorService.findAllAuthors();
         modelMap.addAttribute("authors", authors);
         List<Book> books = bookService.findAllBooks();
@@ -62,15 +82,14 @@ public class MainController {
 
     @GetMapping("/signIn")
     public String signIn(@ModelAttribute Author author,
+                         @AuthenticationPrincipal CurrentUser currentUser,
                          ModelMap modelMap) {
-        if (author.getEmail() == null || author.getPassword() == null) {
-            String errorMsg = "Invalid email or password";
+        if (author.getPassword() == null) {
+            String errorMsg = "";
             modelMap.addAttribute("errorMsg", errorMsg);
-            show(modelMap);
-            return "index";
-        } else {
-            return "redirect:/";
         }
+        show(currentUser, modelMap);
+        return "index";
     }
 
     @GetMapping("/user/logout")
@@ -81,27 +100,49 @@ public class MainController {
 
     @PostMapping("/user/register")
     public String register(@ModelAttribute Author author,
+                           @AuthenticationPrincipal CurrentUser currentUser,
                            ModelMap modelMap) {
         Optional<Author> emailExist = authorService.findByEmail(author.getEmail());
         if (emailExist.isPresent()) {
-            String emailExistMsg = String.format("%s email address already registered. Please enter another ", author.getEmail());
+            String emailExistMsg = "";
             modelMap.addAttribute("emailExistMsg", emailExistMsg);
-            show(modelMap);
+            show(currentUser, modelMap);
             return "index";
         } else {
             author.setPassword(passwordEncoder.encode(author.getPassword()));
+            author.setToken(UUID.randomUUID().toString());
             authorService.save(author);
             logger.info("New user registered_Successfully!");
-            String successRegisterMsg = String.format("%s are you registered",author.getName());
-            modelMap.addAttribute("successRegisterMsg",successRegisterMsg);
-            show(modelMap);
+            String successRegisterMsg = "";
+            modelMap.addAttribute("successRegisterMsg", successRegisterMsg);
+            show(currentUser, modelMap);
+            String url = String.format("http://localhost:8080/verify?token=%s&mail=%s", author.getToken(), author.getEmail());
+            String to = author.getEmail();
+            String subject = "Hi";
+            String text = String.format("%s thank you, you have successfully registered. Please visit by link in order to activate your profile. %s", author.getName(), url);
+            mailService.sendSimpleMessage(to, subject, text);
             return "index";
         }
     }
 
+    @GetMapping(value = "/verify")
+    public String verify(@RequestParam("mail") String mail,
+                         @RequestParam("token") String token) {
+        Author byEmail = authorService.findOneByEmail(mail);
+        if (byEmail != null && byEmail.getToken() != null && byEmail.getToken().equals(token)) {
+            byEmail.setToken(null);
+            byEmail.setVerify(true);
+            authorService.save(byEmail);
+        }
+        return "redirect:/user/logout";
+    }
+
     @PostMapping("/book/save")
     public String book(@ModelAttribute Book book,
-                       @RequestParam("bookImage") MultipartFile multipartFile) throws IOException {
+                       @ModelAttribute Author author,
+                       @RequestParam("bookImage") MultipartFile multipartFile,
+                       @AuthenticationPrincipal CurrentUser currentUser,
+                       ModelMap modelMap) throws IOException {
         File file = new File(bookImageDir);
         if (!file.exists()) {
             file.mkdirs();
@@ -109,8 +150,15 @@ public class MainController {
         String picName = System.currentTimeMillis() + "_" + multipartFile.getOriginalFilename();
         multipartFile.transferTo(new File(bookImageDir + picName));
         book.setPicUrl(picName);
-        bookService.save(book);
-        logger.info("User added a book_Successfully!");
+        if (author.isVerify()) {
+            bookService.save(book);
+            logger.info("User added a book_Successfully!");
+        } else if(!author.isVerify()){
+            String bookNotAddedMsg = "";
+            modelMap.addAttribute("bookNotAddedMsg", bookNotAddedMsg);
+            show(currentUser, modelMap);
+            return "index";
+        }
         return "redirect:/";
     }
 
@@ -119,12 +167,6 @@ public class MainController {
     byte[] bookImage(@RequestParam("bookImage") String picUrl) throws IOException {
         InputStream inputStream = new FileInputStream(bookImageDir + picUrl);
         return IOUtils.toByteArray(inputStream);
-    }
-
-    @GetMapping("/user/deleteAllBooks")
-    public String deleteAllBooks() {
-        bookService.deleteAllBooks();
-        return "redirect:/";
     }
 
     @GetMapping("user/deleteBook/{id}")
@@ -137,9 +179,7 @@ public class MainController {
     public String bookById(@PathVariable("id") ObjectId id,
                            ModelMap modelMap,
                            @AuthenticationPrincipal CurrentUser currentUser) {
-        if (currentUser != null) {
-            modelMap.addAttribute("currentUser", currentUser.getAuthor());
-        }
+        show(currentUser, modelMap);
         List<Book> allBooks = bookService.findAllBooksById(id);
         modelMap.addAttribute("allBooks", allBooks);
         return "book";

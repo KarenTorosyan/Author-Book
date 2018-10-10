@@ -7,4 +7,5 @@ import java.util.Optional;
 
 public interface AuthorRepository extends MongoRepository<Author, String> {
     Optional<Author> findByEmail(String email);
+    Author findOneByEmail(String email);
 }
