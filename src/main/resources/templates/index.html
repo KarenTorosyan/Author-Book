@@ -10,8 +10,6 @@
 <a href="?lang=ru"><img src="/img/lang/russia.png" style="width: 25px;"></a>
 <br>
 <a th:if="${currentUser != null}" href="/user/logout" th:text="#{user.logout}"></a>
-<br>
-<h4 th:if="${verifyMsg}" th:text="#{verify}" style="color: #ff4538"></h4>
 <div th:if="${currentUser == null}">
     <h3 th:text="#{signIn}"></h3>
     <form action='/signIn' method="post">
@@ -32,7 +30,7 @@
     </form>
 </div>
 <h3 th:if="${currentUser != null}" th:text="#{book.add}"></h3>
-<h4 th:if="${bookNotAddedMsg}" th:text="#{book.not.added}" style="color: #ff4538"></h4>
+<h4 th:if="${bookNotAddedMsg}" th:text="#{verify}" style="color: #ff4538"></h4>
 <form th:if="${currentUser != null}" action="/book/save" method="post" enctype="multipart/form-data">
     <input type="text" name="name" th:placeholder="#{book.name}" required><br>
     <textarea type="text" name="description" th:placeholder="#{book.description}" required></textarea><br>
@@ -41,6 +39,7 @@
     <input hidden th:value="${currentUser.id}" name="author"><br>
     <input type="submit" th:value="#{book.add}">
 </form>
+<div th:if="${currentUser == null}">
 <h3 th:text="#{book.all}"></h3>
 <table>
     <tr>
@@ -57,8 +56,30 @@
         <td th:if="${book.author != null}" th:text="${book.author.name + ' ' + book.author.surname }"></td>
     </tr>
 </table>
+    </div>
 <div th:if="${currentUser != null}">
-    <h4><a th:href="@{'/book' + ${currentUser.id}}" th:text="#{book.my}"></a></h4>
+    <h4 th:text="#{book.my}"></h4>
+</div>
+<div th:if="${currentUser != null}">
+<table>
+    <tr>
+        <th th:text="#{book.name}"></th>
+        <th th:text="#{book.description}"></th>
+        <th th:text="#{book.picture}"></th>
+        <th th:text="#{book.action}"></th>
+    </tr>
+    <tr th:each="book:${allBooks}">
+        <form action="/book/update" method="post">
+            <td hidden><input hidden name="id" th:value="${book.id}"></td>
+            <td><input type="text" name="name" th:value="${book.name}"></td>
+            <td><textarea name="description" th:text="${book.description}"></textarea></td>
+            <td><input name="picUrl" th:value="${book.picUrl}" hidden><img th:if="${book.picUrl != null}" name="bookImage" th:src="@{'/book/getImage/'(bookImage=${book.picUrl})}" style="width: 60px"></td>
+            <td><a href="#" value="submit" th:href="@{'/user/deleteBook/' + ${book.id}}" th:text="#{book.delete}"></a></td>
+            <td hidden th:value="${currentUser.id}" name="author"></td>
+            <td><input type="submit" th:value="#{book.update}"></td>
+        </form>
+    </tr>
+</table>
 </div>
 </body>
 </html>

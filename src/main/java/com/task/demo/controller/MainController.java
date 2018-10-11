@@ -87,9 +87,11 @@ public class MainController {
         if (author.getPassword() == null) {
             String errorMsg = "";
             modelMap.addAttribute("errorMsg", errorMsg);
+            show(currentUser,modelMap);
+            return "index";
         }
         show(currentUser, modelMap);
-        return "index";
+        return "redirect/";
     }
 
     @GetMapping("/user/logout")
@@ -153,13 +155,13 @@ public class MainController {
         if (author.isVerify()) {
             bookService.save(book);
             logger.info("User added a book_Successfully!");
-        } else if(!author.isVerify()){
+        } else if (!author.isVerify()) {
             String bookNotAddedMsg = "";
             modelMap.addAttribute("bookNotAddedMsg", bookNotAddedMsg);
             show(currentUser, modelMap);
             return "index";
         }
-        return "redirect:/";
+        return "redirect:/book";
     }
 
     @GetMapping(value = "/book/getImage")
@@ -169,20 +171,25 @@ public class MainController {
         return IOUtils.toByteArray(inputStream);
     }
 
-    @GetMapping("user/deleteBook/{id}")
+    @GetMapping("/user/deleteBook/{id}")
     public String deleteBook(@PathVariable("id") String id) {
         bookService.deleteBookById(id);
-        return "redirect:/";
+        return "redirect:/book";
     }
 
-    @GetMapping("/book{id}")
+    @GetMapping("/book/{id}")
     public String bookById(@PathVariable("id") ObjectId id,
                            ModelMap modelMap,
                            @AuthenticationPrincipal CurrentUser currentUser) {
         show(currentUser, modelMap);
         List<Book> allBooks = bookService.findAllBooksById(id);
         modelMap.addAttribute("allBooks", allBooks);
-        return "book";
+        return "index";
+    }
+
+    @GetMapping("/book")
+    public String book(@AuthenticationPrincipal CurrentUser currentUser){
+        return "redirect:/book/" + currentUser.getAuthor().getId();
     }
 
     @PostMapping("/book/update")
@@ -193,7 +200,6 @@ public class MainController {
         currentBook.setAuthor(currentUser.getAuthor());
         currentBook.setPicUrl(book.getPicUrl());
         bookService.save(currentBook);
-        return "redirect:/";
+        return "redirect:/book";
     }
-
 }
